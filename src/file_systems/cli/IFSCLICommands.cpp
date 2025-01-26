@@ -5,7 +5,7 @@
     If a copy of the MPL was not distributed with this file,
     You can obtain one at https://mozilla.org/MPL/2.0/.
 
-    Copyright (C) 2011 Daniel Jerolm
+    Copyright (C) 2011, 2024, 2025 Daniel Jerolm
 */
 
 #include <gpcc/file_systems/cli/IFSCLICommands.hpp>
@@ -13,6 +13,7 @@
 #include <gpcc/file_systems/exceptions.hpp>
 #include <gpcc/file_systems/IFileStorage.hpp>
 #include <gpcc/raii/scope_guard.hpp>
+#include <gpcc/string/BinaryDumper.hpp>
 #include <gpcc/string/tools.hpp>
 #include <cstddef>
 
@@ -245,35 +246,39 @@ void CLICMDDump(std::string const & restOfLine, gpcc::cli::CLI & cli, IFileStora
  * \brief CLI command handler: Dumps the content of a file.
  *
  * After each kilobyte of dumped data the user is asked if he/she likes to continue.
- * This prevents issued with very large files.
+ * This prevents issues with very large files.
  *
- * Example for registration at an CLI:
+ * Example for registration at a CLI:
  * ~~~{.cpp}
  * pCLI->AddCommand(gpcc::cli::Command::Create("file_dump", " full_name\n"\
- *                                                          "Dumps the content of a file.",
+ *                                             "Dumps the content of a file.",
  *                  std::bind(&gpcc::file_systems::CLICMDDump,
- *                  std::placeholders::_1, std::placeholders::_2, pIFS));
+ *                            std::placeholders::_1,
+ *                            std::placeholders::_2,
+ *                            pIFS));
  * ~~~
  *
- * ---
+ * - - -
  *
  * __Thread safety:__\n
  * This is thread-safe.
  *
  * __Exception safety:__\n
- * Basic exception safety:\n
+ * Basic guarantee:
  * - content of terminal's screen could be undefined
  *
  * __Thread cancellation safety:__\n
- * Deferred cancellation is safe, but:
+ * Basic guarantee:
  * - content of terminal's screen could be undefined
  *
- * ---
+ * - - -
  *
  * \param restOfLine
  * Arguments entered behind the command.
+ *
  * \param cli
- * @ref gpcc::cli::CLI instance, in whose context this function is invoked.
+ * @ref gpcc::cli::CLI instance invoking this.
+ *
  * \param pIFS
  * Pointer to the @ref IFileStorage interface used to access the files.
  */
@@ -281,24 +286,38 @@ void CLICMDDump(std::string const & restOfLine, gpcc::cli::CLI & cli, IFileStora
   auto fileReader = pIFS->Open(restOfLine);
   ON_SCOPE_EXIT() { try { fileReader->Close(); } catch (std::exception const &) {}; };
 
-  uint8_t buffer[16];
-  uint8_t bufLevel = 0;
-  uint32_t offset = 0;
-
-  cli.WriteLine("Offset      +0 +1 +2 +3 +4 +5 +6 +7 +8 +9 +A +B +C +D +E +F 0123456789ABCDEF");
+  // The number of dumped bytes is accumulated in this.
+  // This is also the offset in the file and the address displayed in the dump.
+  size_t totalBytes = 0U;
+  bool printHeadline = true;
   while (true)
   {
+    uint8_t buffer[64];
+    size_t bufLevel = 0U;
+
     while ((fileReader->GetState() != gpcc::stream::IStreamReader::States::empty) && (bufLevel != sizeof(buffer)))
       buffer[bufLevel++] = fileReader->Read_uint8();
 
-    if (bufLevel == 0)
+    if (bufLevel == 0U)
+    {
+      cli.WriteLine("Dumped " + std::to_string(totalBytes) + " byte");
       break;
+    }
 
-    cli.WriteLine(gpcc::string::HexDump(offset, buffer, bufLevel, 1U, 16U));
-    offset += bufLevel;
-    bufLevel = 0;
+    gpcc::string::BinaryDumper bd(buffer, bufLevel, static_cast<uintptr_t>(totalBytes), 1U);
 
-    if (offset % 1024U == 0)
+    if (printHeadline)
+    {
+      cli.WriteLine(bd.GetHeadLine());
+      printHeadline = false;
+    }
+
+    while (!bd.IsAllDataDumped())
+      cli.WriteLine(bd.GetLine());
+
+    totalBytes += bufLevel;
+
+    if ((totalBytes % 1024U) == 0U)
     {
       auto const userEntry = cli.ReadLine("Continue? (no = stop, anything else = continue):");
       if (gpcc::string::Trim(userEntry) == "no")
@@ -308,8 +327,6 @@ void CLICMDDump(std::string const & restOfLine, gpcc::cli::CLI & cli, IFileStora
       }
     }
   }
-
-  cli.WriteLine("Dumped " + std::to_string(offset + bufLevel) + " byte");
 }
 void CLICMDCopy(std::string const & restOfLine, gpcc::cli::CLI & cli, IFileStorage* pIFS)
 /**
