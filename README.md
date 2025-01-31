@@ -1,4 +1,6 @@
-# GPCC
+
+# GPCC [![Run unittests](https://github.com/DanielJerolm/gpcc/actions/workflows/build-test.yaml/badge.svg)](https://github.com/DanielJerolm/gpcc/actions/workflows/build-test.yaml)
+
 The swiss army knife for C++ cross-platform portable embedded software.
 
 # About
