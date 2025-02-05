@@ -14,6 +14,7 @@
 #include <gpcc/osal/MutexLocker.hpp>
 #include <gpcc/osal/Panic.hpp>
 #include <gpcc/raii/scope_guard.hpp>
+#include <gpcc/raii/unique_c_ptr.hpp>
 #include <gpcc/string/StringComposer.hpp>
 #include <stdexcept>
 #include <system_error>
@@ -247,8 +248,8 @@ std::string Thread::GetInfo(size_t const nameFieldWidth) const
   {
     ON_SCOPE_EXIT(DecRefCnt) { epos_thread_DecRefCnt(pEPOSThread); };
 
-    char* pInfoStr = epos_thread_CreateInfoString(pEPOSThread, nameFieldWidth);
-    if (pInfoStr == nullptr)
+    gpcc::raii::unique_c_ptr<char> spInfoStr(epos_thread_CreateInfoString(pEPOSThread, nameFieldWidth));
+    if (spInfoStr == nullptr)
     {
       if (errno == ENOMEM)
         throw std::bad_alloc();
@@ -256,9 +257,7 @@ std::string Thread::GetInfo(size_t const nameFieldWidth) const
         throw std::system_error(errno, std::generic_category(), "epos_thread_CreateInfoString() failed");
     }
 
-    ON_SCOPE_EXIT(ReleaseInfoStr) { free(pInfoStr); };
-
-    infoLine << pInfoStr;
+    infoLine << spInfoStr.get();
   }
   else
   {
