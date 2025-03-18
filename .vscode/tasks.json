@@ -1,0 +1,146 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+        "label": "CMake configure: Native Linux productive (release)",
+        "type": "shell",
+        "command": "./cmake_config_nativelinux-productive-release.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "CMake configure: Native Linux unittest (debug)",
+        "type": "shell",
+        "command": "./cmake_config_nativelinux-unittest-debug.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "CMake configure: Native Linux unittest (release)",
+        "type": "shell",
+        "command": "./cmake_config_nativelinux-unittest-release.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Clean (productive)",
+        "type": "shell",
+        "command": "./build_productive.sh",
+        "args": [
+            "clean"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Build (productive)",
+        "type": "shell",
+        "command": "./build_productive.sh",
+        "args": [
+            "all"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ]
+    },
+    {
+        "label": "Clean (unittest)",
+        "type": "shell",
+        "command": "./build_unittest.sh",
+        "args": [
+            "clean"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Build (unittest)",
+        "type": "shell",
+        "command": "./build_unittest.sh",
+        "args": [
+            "all"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": [
+            "$gcc"
+        ]
+    },
+    {
+        "label": "doxygen (linux_x64)",
+        "type": "shell",
+        "command": "./build_doxygen_linux_x64.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "doxygen (linux_x64_tfc)",
+        "type": "shell",
+        "command": "./build_doxygen_linux_x64_tfc.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Run all unittests",
+        "type": "shell",
+        "command": "./execute_unittests.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Run selected unittests",
+        "type": "shell",
+        "command": "./execute_unittests.sh",
+        "args": [
+            "--gtest_filter=TestSuite.TestCase"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Run all non-death-unittests",
+        "type": "shell",
+        "command": "./execute_unittests.sh",
+        "args": [
+            "--gtest_filter=-*Death*"
+        ],
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    },
+    {
+        "label": "Run all non-death-unittests (memcheck)",
+        "type": "shell",
+        "command": "./execute_unittests_memcheck.sh",
+        "options": {
+            "cwd": "${workspaceFolder}/scripts"
+        },
+        "problemMatcher": []
+    }
+]
+}

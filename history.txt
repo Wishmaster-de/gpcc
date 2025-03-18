@@ -202,7 +202,10 @@ Next to do:
 
 History:
 ===============================================================================
-2029-01-29
+2025-03-14
+- Add capability to build linux native library and linux unittests "standalone"
+
+2025-01-29
 - Add Log-methods accepting an va_list object
 
 2025-01-25

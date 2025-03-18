@@ -1,0 +1,25 @@
+{
+    "configurations": [
+        {
+            "name": "Linux-productive",
+            "includePath": [
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "compileCommands": "${workspaceFolder}/build_productive/compile_commands.json",
+            "compilerPath": "/usr/bin/gcc",
+            "intelliSenseMode": "linux-gcc-x64"
+        },
+        {
+            "name": "Linux-unittest",
+            "includePath": [
+                "/usr/include",
+                "/usr/local/include"
+            ],
+            "compileCommands": "${workspaceFolder}/build_unittest/compile_commands.json",
+            "compilerPath": "/usr/bin/gcc",
+            "intelliSenseMode": "linux-gcc-x64"
+        }
+    ],
+    "version": 4
+}
