@@ -3,8 +3,14 @@ name: Build and run unittests
 on:
   push:
     branches: [ "develop" ]
+    paths-ignore:
+      - "**.md"
+      - "**.txt"
   pull_request:
     branches: [ "develop" ]
+    paths-ignore:
+      - "**.md"
+      - "**.txt"
 
   # Allows triggering this workflow manually from the Action tab
   workflow_dispatch:
