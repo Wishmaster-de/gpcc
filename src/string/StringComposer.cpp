@@ -5,12 +5,13 @@
     If a copy of the MPL was not distributed with this file,
     You can obtain one at https://mozilla.org/MPL/2.0/.
 
-    Copyright (C) 2024 Daniel Jerolm
+    Copyright (C) 2024, 2025 Daniel Jerolm
 */
 
 #include <gpcc/string/StringComposer.hpp>
 #include <gpcc/osal/Panic.hpp>
 #include <stdexcept>
+#include <type_traits>
 #include <cstdio>
 #include <cstring>
 
@@ -1014,10 +1015,29 @@ void StringComposer::PrintToBuffer(char* const buffer, size_t const bufferSize, 
 
   char fmt[maxFmtStrBufSize];
   int status;
-  if (!SetupFormatString(fmt, type))
-    status = snprintf(buffer, bufferSize, fmt, width, value);
+
+  // fmt is generated. Don't complain.
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wformat-nonliteral"
+
+  if (std::is_same<T, float>::value == false)
+  {
+    if (!SetupFormatString(fmt, type))
+      status = snprintf(buffer, bufferSize, fmt, width, value);
+    else
+      status = snprintf(buffer, bufferSize, fmt, width, prec_, value);
+  }
   else
-    status = snprintf(buffer, bufferSize, fmt, width, prec_, value);
+  {
+    // float is implicitly promoted to double when passed to *printf().
+    // We make the cast explicit to prevent findings from -Wdouble-promotion.
+    if (!SetupFormatString(fmt, type))
+      status = snprintf(buffer, bufferSize, fmt, width, static_cast<double>(value));
+    else
+      status = snprintf(buffer, bufferSize, fmt, width, prec_, static_cast<double>(value));
+  }
+
+  #pragma GCC diagnostic pop
 
   if (status < 0)
     throw std::logic_error("snprintf failed");
