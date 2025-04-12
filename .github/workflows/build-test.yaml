@@ -1,0 +1,40 @@
+name: Build and run unittests
+
+on:
+  push:
+    branches: [ "develop" ]
+    paths-ignore:
+      - "**.md"
+      - "**.txt"
+  pull_request:
+    branches: [ "develop" ]
+    paths-ignore:
+      - "**.md"
+      - "**.txt"
+
+  # Allows triggering this workflow manually from the Action tab
+  workflow_dispatch:
+
+jobs:
+  build-and-test:
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: CMake configure
+      working-directory: ${{github.workspace}}/scripts
+      run: ./cmake_config_nativelinux-unittest-debug.sh
+
+    - name: Build
+      working-directory: ${{github.workspace}}/scripts
+      run: |
+        echo "Number of cores: $(nproc)"
+        ./build_unittest.sh all
+
+    - name: Execute unittests
+      working-directory: ${{github.workspace}}/build_unittest/output
+      run: ./unittests
