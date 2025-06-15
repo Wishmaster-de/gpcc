@@ -9,7 +9,7 @@
 # Copyright (C) 2025 Daniel Jerolm
 
 
-# This script executes all unittests.
+# This script executes all unittests from the ./build_unittest folder.
 #
 # Invocation:
 # ./execute_unittests.sh [args]
@@ -18,8 +18,14 @@
 # It could be used to configure a filter:
 # ./execute_unittests.sh --gtest_filter=Testsuite.Testcase
 
-
 set -e
 
+# ensure that the unittest executable is existing
+if [ ! -f "../build_unittest/output/unittests" ]; then
+  echo "The unittest executable is not existing."
+  echo "Did you run 'cmake_config_unittest_*.sh' and 'build_unittest.sh' ?"
+  exit 1
+fi
+
 cd ../build_unittest/output
-./unittests "$@"
+./unittests $@
