@@ -188,7 +188,7 @@ bool ConditionVariable::TimeLimitedWait(Mutex & mutex, time::TimePoint const & a
   if (!epos_time_TimespecToU64_ns(&absTimeout_ns, absoluteTimeout.Get_timespec_ptr()))
     throw std::overflow_error("Timeout too large");
 
-  return epos_convar_TimeLimitedWait(&condVar, &mutex.mutex, absTimeout_ns);
+  return !epos_convar_TimeLimitedWait(&condVar, &mutex.mutex, absTimeout_ns);
 }
 
 } // namespace osal
