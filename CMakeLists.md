@@ -20,7 +20,7 @@ There are three CMake cache variables that must be configured from the outside:
   `gcc_arm` or `gcc_x64`.
 
 - GPCC_OS:  
-  `chibios_arm`, `epos_arm`, `linux_arm`, `linux_arm_tfc`, `linux_x64`, `linux_x64_tfc`
+  `chibios_arm`, `epos_arm`, `linux_arm`, `linux_arm_tfc`, `linux_x64`, `linux_x64_tfc`, `zephyr`
 
 For details please inspect `CMakeLists.txt`.
 
@@ -47,6 +47,7 @@ chibios_arm   | target_link_libraries(gpcc PUBLIC <chibios_and_cpp_runtime>)
 epos_arm      | Presence of library `epos_kernel`
 linux_arm     | -
 linux_x64     | -
+zephyr        | Presence of library `zephyr_interface`.<br>Provide `target_include_directories(gpcc SYSTEM PUBLIC <path to zephyr/include>)`<br>to avoid warnings from Zephyr headers.
 
 __Artifacts build:__
 - Static library `gpcc`
