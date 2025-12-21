@@ -11,8 +11,9 @@
 #ifndef FIXCAPFIFO_HPP_202509081955
 #define FIXCAPFIFO_HPP_202509081955
 
-#include <cstddef>
+#include <atomic>
 #include <memory>
+#include <cstddef>
 
 namespace gpcc      {
 namespace container {
@@ -26,13 +27,27 @@ namespace container {
  * interrupt context. The capacity is fixed in terms that push-operations will not increase the capacity when the FIFO
  * becomes full. However, copy- and move-assignment may change the FIFO's capacity.
  *
- * If the user applies the locking mechanisms for synchronization of thread and interrupt context offered by the
- * specific operating system properly, then this FIFO can be used to transfer data between interrupt and thread context.
- * Please refer to the thread-safety notes of each method to determine which methods of the FIFO can be used from
- * interrupt context.
+ * # Build-in Synchronization
+ * The push- and pop-methods internally use atomics. The FIFO can be used to transfer data from a producer in interrupt
+ * or thread context to an consumer in a different thread or interrupt context without the need for external
+ * synchronization measures.
  *
+ * However, the user __must__ apply proper external locking/synchronization if:
+ * - Methods other than @ref Push(), @ref Pop(), @ref PushMultiple(), or @ref PopMultiple() are used from different
+ *   contexts.
+ * - More than one producer uses @ref Push() and/or @ref PushMultiple()
+ * - More than one consumer uses @ref Pop() and/or @ref PopMultiple()
+ *
+ * If only thread context is used, then locking measures may incorporate an @ref gpcc::osal::Mutex for instance. If
+ * interrupt context is involved, then the user has to apply locking mechanisms for synchronization of thread and
+ * interrupt context provided by the specific operating system.
+ *
+ * Please refer to the thread-safety notes of each method to determine which methods of the FIFO can be used from
+ * interrupt context and if external synchronization is required.
+ *
+ * # Use in interrupt context
  * The following measures were applied to methods that can be invoked from interrupt context:
- * - No memory allocation.
+ * - No dynamic memory allocation.
  * - No exceptions are thrown, not even under the hood.
  * - FIFO overflow/underflow awareness and report by return value.
  * - No use of functions from the C/C++ runtime that are unavailable or incompatible with interrupt context.\n
@@ -61,8 +76,10 @@ namespace container {
  * - - -
  *
  * __Thread safety:__\n
- * Not thread-safe, but non-modifying concurrent access is safe.\n
- * Selected member functions can be invoked from interrupt context, if the caller applies proper locking.
+ * - Not thread-safe. If used from different contexts, then the user has to apply proper locking.\n
+ *   As an exception, push- and pop-operations use atomics and can be invoked from different contexts.\n
+ * - Selected member functions can be invoked from interrupt context.\n
+ * - Pay attention to method's thread-safety notes.
  */
 template <typename T, typename SIZET = size_t>
 class FixCapFIFO final
@@ -99,7 +116,7 @@ class FixCapFIFO final
     SIZET capacity_;
 
     /// Number of items currently stored in the FIFO.
-    SIZET size_;
+    std::atomic<SIZET> size_;
 
     /// Index of next element to be written in @ref spMemory_.
     SIZET wrIndex_;
